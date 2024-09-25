@@ -23,11 +23,26 @@ public class Visitor {
             BufferedReader in = new BufferedReader(new InputStreamReader(visitorSocket.getInputStream()));
             BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 
-            String rideChoices;
-            while ((rideChoices = stdIn.readLine()) != null) {
-                out.println(rideChoices);
-                System.out.println(in.readLine());
+            //print out staff's message
+            String staffMessage;
+            while ((staffMessage = in.readLine()) != null) {
+                if (staffMessage.equals("END")) {
+                    // End of rides list, break out of the loop
+                    break;
+                }
+                System.out.println(staffMessage);
             }
+
+            // Ask for user input after displaying the rides
+            System.out.println("Please type the name of the ride you want to choose:");
+            String rideChoice = stdIn.readLine();
+
+            // Send the selected ride to the server
+            out.println(rideChoice);
+
+            // Print out the server's confirmation response
+            String serverConfirmation = in.readLine();
+            System.out.println("Server response: " + serverConfirmation);
 
         }catch (UnknownHostException e) {
             System.err.println("Don't know about host " + hostName);
@@ -38,5 +53,4 @@ public class Visitor {
             System.exit(1);
         }
     }
-
 }

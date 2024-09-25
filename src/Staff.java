@@ -1,5 +1,4 @@
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -31,9 +30,21 @@ public class Staff {
             //list all my rides at once
             //Store the rides in a list
             List<Ride> rides = new ArrayList<>();
+            rides.add(ride1);
+            rides.add(ride2);
             for (Ride ride : rides) {
                 out.println("Here are the the available rides " + ride.getName());
             }
+
+            // Send a termination message to signal the end of the rides list
+            out.println("END");
+
+            // Receive the ride choice from the visitor
+            String rideChoice = in.readLine();
+            System.out.println("Visitor chose: " + rideChoice);
+
+            // Send a confirmation response back to the visitor
+            out.println("You have chosen " + rideChoice + ", enjoy the ride!");
 
 
         }
