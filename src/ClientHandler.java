@@ -57,17 +57,40 @@ class ClientHandler extends Thread {
     private void receiveRideChoice(BufferedReader in, PrintWriter out) throws IOException {
         // Receive the ride choice from the visitor
         String rideChoice = in.readLine();
-
-        // If rideChoice is null or empty, handle the case
-        if (rideChoice == null || rideChoice.trim().isEmpty()) {
-            out.println("Invalid choice, please select a valid ride.");
-            return;
-        }
-
         System.out.println("Visitor chose: " + rideChoice);
 
-        // Send a confirmation response back to the visitor
-        out.println("You have chosen " + rideChoice + ", enjoy the ride!");
+        // Find the selected ride
+        Ride selectedRide = null;
+        for (Ride ride : rides) {
+            if (ride.getName().equalsIgnoreCase(rideChoice)) {
+                selectedRide = ride;
+                break;
+            }
+        }
+
+        if (selectedRide != null) {
+            // Check if the ride has available seats
+            if (selectedRide.hasAvailableSeats()) {
+                selectedRide.addVisitor();
+                out.println("You have chosen " + rideChoice + ". Enjoy the ride!");
+            } else {
+                out.println("Sorry, the " + rideChoice + " is full. Please choose another ride.");
+            }
+        } else {
+            out.println("Invalid ride choice.");
+        }
+    }
+
+
+    // Method to close the client connection
+    public void closeConnection() {
+        try {
+            if (visitorSocket != null && !visitorSocket.isClosed()) {
+                visitorSocket.close();
+            }
+        } catch (IOException e) {
+            System.out.println("Error closing client connection: " + e.getMessage());
+        }
     }
 }
 
