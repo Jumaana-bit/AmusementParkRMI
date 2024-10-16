@@ -4,6 +4,9 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Staff {
@@ -12,11 +15,13 @@ public class Staff {
     private ServerSocket serverSocket;
     private List<ClientHandler> clientHandlers;
     private AtomicBoolean isServerRunning;
+    private ScheduledExecutorService scheduler;
 
     public Staff() {
         rides = createRides();
         clientHandlers = new ArrayList<>();
         isServerRunning = new AtomicBoolean(true);
+        startPeriodicCheck();  // Start periodic checks for ride vacancies
     }
 
     public static void main(String[] args) throws Exception {
@@ -46,7 +51,7 @@ public class Staff {
     private List<Ride> createRides() {
         // Create and store the rides in a list
         List<Ride> rides = new ArrayList<>();
-        rides.add(new Ride("Ferris Wheel", 50));
+        rides.add(new Ride("Ferris Wheel", 2));
         rides.add(new Ride("Roller Coaster", 65));
         return rides;
     }
@@ -75,6 +80,23 @@ public class Staff {
         }
     }
 
+    private void startPeriodicCheck() {
+        scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(() -> {
+            for (Ride ride : rides) {
+                notifyNextVisitors(ride);  // Check and notify waitlisted visitors
+            }
+        }, 0, 15, TimeUnit.MINUTES);  // Adjust time as needed (15 minutes)
+    }
+
+    private void notifyNextVisitors(Ride ride) {
+        // If there's vacancy, notify next visitors in the waitlist
+        while (ride.hasAvailableSeats() && !ride.getWaitlist().isEmpty()) {
+            ClientHandler nextVisitor = ride.getWaitlist().poll();  // Get the next visitor
+            nextVisitor.notifyRideAvailable(ride.getName());  // Notify them
+        }
+    }
+
     private void rejectConnection(Socket visitorSocket) throws IOException {
         visitorSocket.getOutputStream().write("The maximum occupancy for this ride has been reached. Please try again later.\n".getBytes());
         visitorSocket.close();
@@ -91,6 +113,16 @@ public class Staff {
     private void shutdownServer() {
         isServerRunning.set(false);
         System.out.println("Shutting down the server...");
+
+        // Shutdown the scheduler
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdown();
+            try {
+                scheduler.awaitTermination(1, TimeUnit.MINUTES);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
         // Close the server socket to stop accepting new clients
         try {

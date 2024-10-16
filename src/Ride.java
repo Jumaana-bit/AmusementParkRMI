@@ -3,14 +3,14 @@ import java.util.Queue;
 
 public class Ride {
     private String name;
-    private int totalSeats;
-    private int availableSeats;
+    private int capacity;
+    private int currentVisitors;
     private Queue<ClientHandler> waitlist;
 
-    public Ride(String name, int totalSeats) {
+    public Ride(String name, int capacity) {
         this.name = name;
-        this.totalSeats = totalSeats;
-        this.availableSeats = 0;
+        this.capacity = capacity;
+        this.currentVisitors = 0;
         this.waitlist = new LinkedList<>();
     }
 
@@ -19,20 +19,22 @@ public class Ride {
     }
 
     public boolean hasAvailableSeats() {
-        return availableSeats < totalSeats;
+        return currentVisitors < capacity;
     }
 
     public void addVisitor() {
-        if (hasAvailableSeats()) {
-            availableSeats--;
-        }
+        currentVisitors++;
     }
 
     public void removeVisitor() {
-        if (availableSeats < totalSeats) {
-            availableSeats++;
-            // Notify next client on the waitlist if available
-            notifyNextVisitor();
+        if (currentVisitors > 0) {
+            currentVisitors--;
+        }
+
+        // Notify the next visitor in the waitlist if there's one
+        if (!waitlist.isEmpty()) {
+            ClientHandler nextVisitor = waitlist.poll();  // Get the next visitor from the waitlist
+            nextVisitor.notifyRideAvailable(name);  // Notify them that a seat is available
         }
     }
 
@@ -40,10 +42,8 @@ public class Ride {
         waitlist.offer(clientHandler);
     }
 
-    public void notifyNextVisitor() {
-        if (!waitlist.isEmpty()) {
-            ClientHandler nextClient = waitlist.poll();
-            nextClient.notifyRideAvailable(this.name);
-        }
+    public Queue<ClientHandler> getWaitlist() {
+        return waitlist;  // Expose the waitlist
     }
 }
+

@@ -8,6 +8,7 @@ public class ClientHandler extends Thread {
     public static AtomicInteger connectedClients = new AtomicInteger(0);
     private List<Ride> rides;
     private PrintWriter out;
+    private BufferedReader in;
 
     public ClientHandler(Socket socket, List<Ride> rides) {
         this.visitorSocket = socket;
@@ -23,6 +24,7 @@ public class ClientHandler extends Thread {
         try {
             connectedClients.incrementAndGet();
             out = new PrintWriter(visitorSocket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(visitorSocket.getInputStream()));
             handleClient();
         } catch (IOException e) {
             System.out.println("Exception in client handler: " + e.getMessage());
@@ -39,7 +41,6 @@ public class ClientHandler extends Thread {
     private void handleClient() throws IOException {
         System.out.println("Visitor connected from IP: " + visitorSocket.getInetAddress().getHostAddress() + ", Port:" + visitorSocket.getPort());
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(visitorSocket.getInputStream()));
         sendAvailableRides(out);
         receiveRideChoice(in, out);
     }
@@ -49,7 +50,6 @@ public class ClientHandler extends Thread {
         for (Ride ride : rides) {
             out.println("Here are the available rides: " + ride.getName());
         }
-        // Send a termination message to signal the end of the rides list
         out.println("END");
     }
 
@@ -73,21 +73,20 @@ public class ClientHandler extends Thread {
                 selectedRide.addVisitor();
                 out.println("You have chosen " + rideChoice + ". Enjoy the ride!");
             } else {
-                // Add to waitlist if ride is full
-                selectedRide.addToWaitlist(this);
+                // Add to waitlist if the ride is full
+                selectedRide.addToWaitlist(this);  // Add this client to the waitlist
                 out.println("The " + rideChoice + " is full. You have been added to the waitlist.");
+                // Wait for notification when a seat is available
             }
         } else {
             out.println("Invalid ride choice.");
         }
     }
 
-    // Method to notify a client that a ride is available
     public void notifyRideAvailable(String rideName) {
         out.println("A seat is now available on the " + rideName + ". You can now join the ride!");
     }
 
-    // Method to close the client connection
     public void closeConnection() {
         try {
             if (visitorSocket != null && !visitorSocket.isClosed()) {
@@ -98,3 +97,4 @@ public class ClientHandler extends Thread {
         }
     }
 }
+
