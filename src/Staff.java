@@ -21,7 +21,10 @@ public class Staff {
         rides = createRides();
         clientHandlers = new ArrayList<>();
         isServerRunning = new AtomicBoolean(true);
-        startPeriodicCheck();  // Start periodic checks for ride vacancies
+        // Initialize the scheduler here
+        scheduler = Executors.newScheduledThreadPool(1);
+        // Schedule the vacancy check every 15 minutes
+        scheduler.scheduleAtFixedRate(this::checkRidesForVacancy, 5, 5, TimeUnit.MINUTES);
     }
 
     public static void main(String[] args) throws Exception {
@@ -80,14 +83,7 @@ public class Staff {
         }
     }
 
-    private void startPeriodicCheck() {
-        scheduler = Executors.newScheduledThreadPool(1);
-        scheduler.scheduleAtFixedRate(() -> {
-            for (Ride ride : rides) {
-                notifyNextVisitors(ride);  // Check and notify waitlisted visitors
-            }
-        }, 0, 15, TimeUnit.MINUTES);  // Adjust time as needed (15 minutes)
-    }
+
 
     private void notifyNextVisitors(Ride ride) {
         // If there's vacancy, notify next visitors in the waitlist
@@ -109,8 +105,15 @@ public class Staff {
         clientHandler.start();
     }
 
+    private void checkRidesForVacancy() {
+        for (Ride ride : rides) {
+            ride.checkWaitlist(); // Check each ride's waitlist for available seats
+        }
+    }
+
     // Method to shut down the server
     private void shutdownServer() {
+        scheduler.shutdownNow();
         isServerRunning.set(false);
         System.out.println("Shutting down the server...");
 

@@ -31,19 +31,27 @@ public class Ride {
             currentVisitors--;
         }
 
-        // Notify the next visitor in the waitlist if there's one
-        if (!waitlist.isEmpty()) {
-            ClientHandler nextVisitor = waitlist.poll();  // Get the next visitor from the waitlist
-            nextVisitor.notifyRideAvailable(name);  // Notify them that a seat is available
-        }
+        // Check if there is anyone on the waitlist to notify
+        checkWaitlist();
     }
 
     public void addToWaitlist(ClientHandler clientHandler) {
         waitlist.offer(clientHandler);
     }
 
+    // Method to check the waitlist and notify the next visitor if a seat is available
+    public void checkWaitlist() {
+        if (!waitlist.isEmpty() && hasAvailableSeats()) {
+            ClientHandler nextVisitor = waitlist.poll();
+            nextVisitor.notifyRideAvailable(name); // Notify the visitor they can join
+            addVisitor(); // Increment the visitor count for the ride
+        }
+    }
+
+
     public Queue<ClientHandler> getWaitlist() {
         return waitlist;  // Expose the waitlist
     }
+
 }
 
