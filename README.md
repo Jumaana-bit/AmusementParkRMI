@@ -16,11 +16,13 @@ A Java-based RMI service simulating an amusement park. It provides ride manageme
 ### 1. Compile the Code:
 ```bash
 javac *.java
+```
 
 ### 2. Start the RMI Registry
 Before running the server or client, you must start the RMI registry. Run the following command in a terminal:
 ```bash
 rmiregistry
+```
 
 ### 3. Run the server
 Replace <port-number> with the desired port number (e.g., 2000). Run the following command in a terminal:
@@ -32,6 +34,7 @@ java Staff <port-number>
 Replace <port-number> with the matching server port number (e.g., 2000). Run the following command in a terminal:
 ```bash
 java Staff localhost <port-number>
+```
 
 ## Sample Commands
 
