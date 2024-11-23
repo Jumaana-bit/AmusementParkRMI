@@ -9,9 +9,9 @@ import java.util.Scanner;
 public class Staff extends UnicastRemoteObject implements AmusementParkRMI {
     public static List<Ride> rides;
 
-    private List<ClientHandler> clientHandlers;
-    private AtomicBoolean isServerRunning;
-    private ScheduledExecutorService scheduler;
+    private final List<ClientHandler> clientHandlers;
+    private final AtomicBoolean isServerRunning;
+    private final ScheduledExecutorService scheduler;
 
     public Staff() throws RemoteException {
         super(); // Call the superclass constructor
@@ -90,12 +90,20 @@ public class Staff extends UnicastRemoteObject implements AmusementParkRMI {
     }
 
     // Method to gracefully shut down the server by unbinding the service
-    private static void shutdownServer(int portNumber) {
+    private static void shutdownServer(int portNumber, ScheduledExecutorService scheduler) {
         try {
-            // Unbind the service from the RMI registry on the correct port
+            // Unbind the service from the RMI registry
             Registry registry = LocateRegistry.getRegistry(portNumber);
-            registry.unbind("//localhost:" + portNumber + "/AmusementParkService");
-            System.out.println("Amusement Park RMI Service has been shut down.");
+            registry.unbind("AmusementParkService");
+            System.out.println("Amusement Park RMI Service has been unbound.");
+
+            // Shutdown scheduler and threads
+            if (scheduler != null && !scheduler.isShutdown()) {
+                scheduler.shutdown();
+                System.out.println("Scheduler service stopped.");
+            }
+
+            System.out.println("Server shutdown complete.");
         } catch (Exception e) {
             System.err.println("Error shutting down server: " + e.getMessage());
         }
@@ -111,9 +119,10 @@ public class Staff extends UnicastRemoteObject implements AmusementParkRMI {
         Staff staff = new Staff();
 
         // Start RMI registry
+        Registry registry = null;
         try {
-            Registry registry = LocateRegistry.createRegistry(portNumber);  // Creates RMI registry on the specified port
-            Naming.rebind("//localhost:" + portNumber + "/AmusementParkService", staff);  // Bind the staff service to the RMI registry
+            registry = LocateRegistry.createRegistry(portNumber);
+            Naming.rebind("//localhost:" + portNumber + "/AmusementParkService", staff);
             System.out.println("Amusement Park RMI Service is running...");
         } catch (Exception e) {
             System.err.println("RMI Server exception: " + e.toString());
@@ -127,9 +136,12 @@ public class Staff extends UnicastRemoteObject implements AmusementParkRMI {
         while (true) {
             String command = scanner.nextLine();
             if ("shutdown".equalsIgnoreCase(command)) {
-                shutdownServer(portNumber);  // Shutdown using the correct port number
+                shutdownServer(portNumber, staff.scheduler);  // Shutdown using the correct port number
                 break; // Break the loop and stop the server
             }
         }
+
+        // Clean up and exit
+        System.exit(0);
     }
 }
