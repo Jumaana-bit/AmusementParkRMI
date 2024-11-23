@@ -25,7 +25,8 @@ rmiregistry
 ### 3. Run the server
 Replace <port-number> with the desired port number (e.g., 2000). Run the following command in a terminal:
 ```bash
-java Staff <port-number> ```
+java Staff <port-number>
+```
 
 ### 3. Run the Visitor client
 Replace <port-number> with the matching server port number (e.g., 2000). Run the following command in a terminal:
