@@ -25,11 +25,19 @@ rmiregistry
 ### 3. Run the server
 Replace <port-number> with the desired port number (e.g., 2000). Run the following command in a terminal:
 ```bash
-java Staff <port-number>
+java Staff <port-number> ```
 
 ### 3. Run the Visitor client
 Replace <port-number> with the matching server port number (e.g., 2000). Run the following command in a terminal:
 ```bash
 java Staff localhost <port-number>
+
+## Sample Commands
+
+- **View Rides**: Lists available rides with seat information.
+- **Join Ride**: Adds a visitor to the ride or the waitlist if the ride is full.
+- **Leave Ride**: Removes a visitor from the ride.
+- **Shutdown**: Unbinds the RMI service and shuts down the server.
+
 
 
